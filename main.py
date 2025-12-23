@@ -17,11 +17,20 @@ Config.set('graphics', 'width', '540')
 Config.set('graphics', 'height', '960')
 Config.set('graphics', 'resizable', True)
 
+# Set consistent desert background color
+Window.clearcolor = (0.95, 0.85, 0.6, 1)  # Light sandy desert color
+
 # Import our custom screens
 from screens.map_screen import MapScreen
 from screens.camp_screen import CampScreen
 from screens.raid_screen import RaidScreen
 from screens.tech_screen import TechScreen
+from screens.clan_screen import ClanScreen
+from screens.shop_screen import ShopScreen
+
+# Import Firebase and monetization
+from firebase_config import initialize_firebase
+from monetization import monetization_manager
 
 
 class SaharaRaidersApp(App):
@@ -31,6 +40,9 @@ class SaharaRaidersApp(App):
         super().__init__(**kwargs)
         self.title = 'Sahara Raiders'
         self.icon = 'assets/icon.png'  # Will be added later
+
+        # Initialize Firebase
+        initialize_firebase()
 
         # Game state will be managed by GameData class
         self.game_data = None
@@ -49,6 +61,8 @@ class SaharaRaidersApp(App):
         sm.add_widget(CampScreen(name='camp'))
         sm.add_widget(RaidScreen(name='raid'))
         sm.add_widget(TechScreen(name='tech'))
+        sm.add_widget(ClanScreen(name='clan'))
+        sm.add_widget(ShopScreen(name='shop'))
 
         # Start on map screen
         sm.current = 'map'

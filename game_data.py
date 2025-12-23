@@ -170,6 +170,36 @@ class GameData:
         # Tech tree
         self.tech_tree = TechTree()
 
+        # Multiplayer features
+        self.player_id = None  # Will be set to UUID
+        self.player_name = "Desert Raider"  # Default name
+        self.clan_id = None
+        self.clan_tag = None
+
+        # World boss event
+        self.world_boss_active = False
+        self.world_boss_end_time = 0
+        self.world_boss_caravan = None
+        self.clan_damage_contributed = 0
+
+        # Events system
+        self.daily_event_active = False
+        self.daily_event_end_time = 0
+        self.daily_event_type = None
+        self.weekly_event_active = False
+        self.weekly_event_end_time = 0
+        self.weekly_event_type = None
+
+        # Monetization
+        self.gems = 100  # Starting gems for testing
+        self.double_loot_active = False
+        self.upgrade_speed_multiplier = 1.0
+        self.last_raid_losses = 0
+
+        # Battle pass (stub)
+        self.battle_pass_tier = 1
+        self.battle_pass_xp = 0
+
         # World state
         self.visible_caravans: List[Caravan] = []
         self.explored_hexes: set = set()
@@ -496,6 +526,28 @@ class GameData:
             'raiders_available': self.raiders_available,
             'max_raiders': self.max_raiders,
 
+            # Multiplayer
+            'player_id': self.player_id,
+            'player_name': self.player_name,
+            'clan_id': self.clan_id,
+            'clan_tag': self.clan_tag,
+
+            # Events
+            'world_boss_active': self.world_boss_active,
+            'world_boss_end_time': self.world_boss_end_time,
+            'clan_damage_contributed': self.clan_damage_contributed,
+            'daily_event_active': self.daily_event_active,
+            'daily_event_end_time': self.daily_event_end_time,
+            'weekly_event_active': self.weekly_event_active,
+            'weekly_event_end_time': self.weekly_event_end_time,
+
+            # Monetization
+            'gems': self.gems,
+            'double_loot_active': self.double_loot_active,
+            'upgrade_speed_multiplier': self.upgrade_speed_multiplier,
+            'battle_pass_tier': self.battle_pass_tier,
+            'battle_pass_xp': self.battle_pass_xp,
+
             # Heroes
             'heroes': [
                 {
@@ -566,6 +618,28 @@ class GameData:
             self.raiders_available = save_data.get('raiders_available', self.raiders_available)
             self.max_raiders = save_data.get('max_raiders', self.max_raiders)
 
+            # Multiplayer
+            self.player_id = save_data.get('player_id')
+            self.player_name = save_data.get('player_name', self.player_name)
+            self.clan_id = save_data.get('clan_id')
+            self.clan_tag = save_data.get('clan_tag')
+
+            # Events
+            self.world_boss_active = save_data.get('world_boss_active', False)
+            self.world_boss_end_time = save_data.get('world_boss_end_time', 0)
+            self.clan_damage_contributed = save_data.get('clan_damage_contributed', 0)
+            self.daily_event_active = save_data.get('daily_event_active', False)
+            self.daily_event_end_time = save_data.get('daily_event_end_time', 0)
+            self.weekly_event_active = save_data.get('weekly_event_active', False)
+            self.weekly_event_end_time = save_data.get('weekly_event_end_time', 0)
+
+            # Monetization
+            self.gems = save_data.get('gems', self.gems)
+            self.double_loot_active = save_data.get('double_loot_active', False)
+            self.upgrade_speed_multiplier = save_data.get('upgrade_speed_multiplier', 1.0)
+            self.battle_pass_tier = save_data.get('battle_pass_tier', 1)
+            self.battle_pass_xp = save_data.get('battle_pass_xp', 0)
+
             # Load heroes
             if 'heroes' in save_data:
                 for i, hero_data in enumerate(save_data['heroes']):
@@ -583,7 +657,14 @@ class GameData:
 
             # Load tech tree
             if 'tech_unlocked' in save_data:
-                self.tech_tree.unlocked_techs = save_data['tech_unlocked']
+                tech_data = save_data['tech_unlocked']
+                if isinstance(tech_data, list):
+                    # Old format - convert to dict
+                    self.tech_tree.unlocked_techs = {}
+                    for branch in self.tech_tree.TECH_BRANCHES.keys():
+                        self.tech_tree.unlocked_techs[branch] = 0
+                else:
+                    self.tech_tree.unlocked_techs = tech_data
 
             # Load camp location
             camp_loc = save_data.get('camp_location', {'q': 0, 'r': 0})
@@ -637,6 +718,230 @@ class GameData:
         # Reinitialize
         self.__init__()
 
+    def get_power_level(self) -> int:
+        """Calculate player's power level for leaderboards"""
+        base_power = self.raiders_available * 10
+
+        # Building power
+        building_power = 0
+        for building in self.camp_buildings.values():
+            building_power += (building.level * 50) * len(self.TYPE_CONFIGS)
+
+        # Resource wealth
+        resource_power = sum(self.resources.values()) // 10
+
+        # Tech power
+        tech_power = len(self.tech_tree.unlocked_techs) * 100
+
+        return base_power + building_power + resource_power + tech_power
+
+    def sync_player_profile(self):
+        """Sync player profile to Firebase"""
+        from firebase_config import safe_firebase_operation, get_database, DB_PATHS
+
+        if not self.player_id:
+            return
+
+        profile_data = {
+            "player_id": self.player_id,
+            "player_name": self.player_name,
+            "power_level": self.get_power_level(),
+            "clan_id": self.clan_id,
+            "clan_tag": self.clan_tag,
+            "last_active": time.time(),
+            "raiders": self.raiders_available,
+            "resources": sum(self.resources.values()),
+            "buildings": len(self.camp_buildings)
+        }
+
+        def update_profile():
+            db = get_database()
+            if db:
+                db.child(DB_PATHS["players"]).child(self.player_id).set(profile_data)
+
+        safe_firebase_operation(update_profile)
+
+    def start_world_boss_event(self):
+        """Start the world boss Sandworm event"""
+        from caravan import Caravan
+
+        # Create Sandworm at center of map
+        sandworm = Caravan(0, 0, 'sandworm')
+        self.world_boss_caravan = sandworm
+        self.visible_caravans.append(sandworm)
+        self.world_boss_active = True
+        self.world_boss_end_time = time.time() + (7 * 24 * 60 * 60)  # 7 days
+
+        # Reset clan damage tracking
+        self.clan_damage_contributed = 0
+        sandworm.clan_damage = {}
+
+        print("WORLD BOSS EVENT STARTED: The legendary Sandworm has emerged!")
+
+    def end_world_boss_event(self):
+        """End the world boss event and distribute rewards"""
+        if not self.world_boss_active:
+            return
+
+        self.world_boss_active = False
+
+        if self.world_boss_caravan:
+            # Remove Sandworm from world
+            if self.world_boss_caravan in self.visible_caravans:
+                self.visible_caravans.remove(self.world_boss_caravan)
+
+            # Calculate rewards based on clan performance
+            # This would sync with Firebase to get global rankings
+            total_damage = sum(self.world_boss_caravan.clan_damage.values())
+            player_damage = self.world_boss_caravan.clan_damage.get(self.clan_id or self.player_id, 0)
+
+            if total_damage > 0:
+                damage_percentage = player_damage / total_damage
+
+                # Reward gems based on contribution
+                gems_rewarded = int(damage_percentage * 1000)  # Up to 1000 gems for top contributor
+                if gems_rewarded > 0:
+                    from monetization import add_gems
+                    add_gems(gems_rewarded)
+                    print(f"World Boss rewards: {gems_rewarded} gems!")
+
+        self.world_boss_caravan = None
+        print("World Boss event ended!")
+
+    def start_daily_event(self):
+        """Start a daily event"""
+        import random
+
+        event_types = ['caravan_alert', 'resource_boost', 'raid_bonus']
+        event_type = random.choice(event_types)
+
+        self.daily_event_active = True
+        self.daily_event_type = event_type
+        self.daily_event_end_time = time.time() + (24 * 60 * 60)  # 24 hours
+
+        if event_type == 'caravan_alert':
+            # Spawn guaranteed high-value caravan
+            from caravan import Caravan
+            caravan = Caravan(random.randint(-10, 10), random.randint(-10, 10), 'gold')
+            self.visible_caravans.append(caravan)
+            print("DAILY EVENT: Caravan Alert! High-value caravan spotted!")
+
+        elif event_type == 'resource_boost':
+            # Double resource generation for 24 hours
+            for resource in self.resource_rates:
+                self.resource_rates[resource] *= 2
+            print("DAILY EVENT: Resource Boost! 2x resource generation!")
+
+        elif event_type == 'raid_bonus':
+            # Bonus raid rewards
+            print("DAILY EVENT: Raid Bonus! All raids give bonus loot!")
+
+    def end_daily_event(self):
+        """End the daily event"""
+        if self.daily_event_type == 'resource_boost':
+            # Restore normal resource rates
+            for resource in self.resource_rates:
+                self.resource_rates[resource] /= 2
+
+        self.daily_event_active = False
+        self.daily_event_type = None
+
+    def start_weekly_event(self):
+        """Start the weekly Black Gold Rush event"""
+        self.weekly_event_active = True
+        self.weekly_event_type = 'black_gold_rush'
+        self.weekly_event_end_time = time.time() + (7 * 24 * 60 * 60)  # 7 days
+
+        # Double loot from all raids
+        print("WEEKLY EVENT: Black Gold Rush! Double loot from all raids!")
+
+    def end_weekly_event(self):
+        """End the weekly event"""
+        self.weekly_event_active = False
+        self.weekly_event_type = None
+
+    def check_event_timers(self):
+        """Check and update event timers"""
+        current_time = time.time()
+
+        # Check daily event
+        if self.daily_event_active and current_time >= self.daily_event_end_time:
+            self.end_daily_event()
+
+        # Check weekly event
+        if self.weekly_event_active and current_time >= self.weekly_event_end_time:
+            self.end_weekly_event()
+
+        # Check world boss
+        if self.world_boss_active and current_time >= self.world_boss_end_time:
+            self.end_world_boss_event()
+
+    def get_active_events(self) -> List[Dict[str, Any]]:
+        """Get list of currently active events"""
+        events = []
+
+        if self.daily_event_active:
+            time_remaining = max(0, self.daily_event_end_time - time.time())
+            events.append({
+                "type": "daily",
+                "name": self.daily_event_type.replace('_', ' ').title(),
+                "time_remaining": time_remaining
+            })
+
+        if self.weekly_event_active:
+            time_remaining = max(0, self.weekly_event_end_time - time.time())
+            events.append({
+                "type": "weekly",
+                "name": "Black Gold Rush",
+                "time_remaining": time_remaining
+            })
+
+        if self.world_boss_active:
+            boss_status = self.get_world_boss_status()
+            events.append({
+                "type": "world_boss",
+                "name": "Sandworm World Boss",
+                "time_remaining": boss_status["time_remaining"],
+                "health_percentage": boss_status["health_percentage"]
+            })
+
+        return events
+
+    def deal_damage_to_world_boss(self, damage: int):
+        """Deal damage to the world boss (clan contribution)"""
+        if not self.world_boss_active or not self.world_boss_caravan:
+            return
+
+        clan_id = self.clan_id or self.player_id  # Use player ID if no clan
+        self.world_boss_caravan.current_health -= damage
+        self.world_boss_caravan.clan_damage[clan_id] = self.world_boss_caravan.clan_damage.get(clan_id, 0) + damage
+        self.clan_damage_contributed += damage
+
+        # Check if boss is defeated
+        if self.world_boss_caravan.current_health <= 0:
+            self.end_world_boss_event()
+
+    def get_world_boss_status(self) -> Dict[str, Any]:
+        """Get current world boss status"""
+        if not self.world_boss_active or not self.world_boss_caravan:
+            return {"active": False}
+
+        time_remaining = max(0, self.world_boss_end_time - time.time())
+        health_percentage = (self.world_boss_caravan.current_health / self.world_boss_caravan.max_health) * 100
+
+        # Get top 10 clans (would be from Firebase in real implementation)
+        top_clans = sorted(self.world_boss_caravan.clan_damage.items(), key=lambda x: x[1], reverse=True)[:10]
+
+        return {
+            "active": True,
+            "time_remaining": time_remaining,
+            "health_percentage": health_percentage,
+            "current_health": self.world_boss_caravan.current_health,
+            "max_health": self.world_boss_caravan.max_health,
+            "top_clans": top_clans,
+            "player_damage": self.world_boss_caravan.clan_damage.get(self.clan_id or self.player_id, 0)
+        }
+
     def get_game_stats(self) -> Dict[str, Any]:
         """Get current game statistics"""
         return {
@@ -644,5 +949,7 @@ class GameData:
             'active_caravans': len(self.visible_caravans),
             'explored_area': len(self.explored_hexes),
             'military_strength': self.raiders_available * 3,  # Rough estimate
-            'resource_generation_rate': sum(self.resource_rates.values())
+            'resource_generation_rate': sum(self.resource_rates.values()),
+            'power_level': self.get_power_level(),
+            'clan_member': self.clan_id is not None
         }

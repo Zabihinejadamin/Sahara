@@ -9,7 +9,7 @@ from typing import Tuple, List
 class Caravan:
     """Represents a trade caravan in the desert"""
 
-    CARAVAN_TYPES = ['salt', 'gold', 'spices', 'imperial']
+    CARAVAN_TYPES = ['salt', 'gold', 'spices', 'imperial', 'sandworm']
 
     # Type configurations
     TYPE_CONFIGS = {
@@ -45,6 +45,16 @@ class Caravan:
             'move_interval': 30,
             'loot_types': {'gold': 0.5, 'spices': 0.5},
             'rare': True  # Only appears rarely
+        },
+        'sandworm': {
+            'name': 'Sandworm (World Boss)',
+            'escorts_range': (100, 150),
+            'loot_range': (5000, 10000),
+            'size': 'boss',
+            'move_interval': 60,  # Very slow movement
+            'loot_types': {'gold': 0.4, 'spices': 0.4, 'slaves': 0.2},
+            'boss': True,  # Special world boss
+            'health': 10000  # Boss health
         }
     }
 
@@ -59,9 +69,9 @@ class Caravan:
         self.q = q
         self.r = r
 
-        # Random type if not specified (weighted to avoid rare imperial convoys)
+        # Random type if not specified (weighted to avoid rare imperial convoys and sandworm)
         if caravan_type is None:
-            weights = [0.4, 0.35, 0.2, 0.05]  # salt, gold, spices, imperial
+            weights = [0.4, 0.35, 0.2, 0.049, 0.001]  # salt, gold, spices, imperial, sandworm
             caravan_type = random.choices(self.CARAVAN_TYPES, weights=weights)[0]
         else:
             caravan_type = caravan_type
@@ -77,6 +87,13 @@ class Caravan:
         self.target_q = q
         self.target_r = r
         self.is_scouted = False  # Whether player has scouted this caravan
+
+        # Boss properties
+        config = self.TYPE_CONFIGS[self.caravan_type]
+        self.is_boss = config.get('boss', False)
+        self.max_health = config.get('health', self.escorts * 10)  # Default health based on escorts
+        self.current_health = self.max_health
+        self.clan_damage = {}  # clan_id -> damage dealt
 
         # Generate initial movement path
         self._generate_movement_path()

@@ -1,7 +1,7 @@
 {
   "resources": {
     "water": 0,
-    "salt": 50,
+    "salt": 51,
     "gold": 25,
     "spices": 0
   },
@@ -12,14 +12,30 @@
     "spices": 0.05
   },
   "resource_timers": {
-    "water": 8.283192300237715,
-    "salt": 54.14159615011886,
-    "gold": 10.828319230023787,
-    "spices": 5.414159615011894,
+    "water": 29.247671300545335,
+    "salt": 14.623835650272667,
+    "gold": 22.924767130054654,
+    "spices": 11.462383565027327,
     "slaves": 0.0
   },
   "raiders_available": 1,
   "max_raiders": 50,
+  "player_id": "87f0ab8c-fc10-4dfc-8fb5-86ba11db7c1d",
+  "player_name": "Desert Raider",
+  "clan_id": null,
+  "clan_tag": null,
+  "world_boss_active": false,
+  "world_boss_end_time": 0,
+  "clan_damage_contributed": 0,
+  "daily_event_active": false,
+  "daily_event_end_time": 0,
+  "weekly_event_active": false,
+  "weekly_event_end_time": 0,
+  "gems": 100,
+  "double_loot_active": true,
+  "upgrade_speed_multiplier": 1.0,
+  "battle_pass_tier": 1,
+  "battle_pass_xp": 0,
   "heroes": [
     {
       "name": "The Veil",
@@ -48,7 +64,11 @@
     }
   ],
   "camp_buildings": {},
-  "tech_unlocked": [],
+  "tech_unlocked": {
+    "weapons": 0,
+    "camels": 0,
+    "fortifications": 0
+  },
   "camp_location": {
     "q": 0,
     "r": 0
@@ -62,7 +82,7 @@
       "escorts": 5,
       "loot_value": 149,
       "movement_path": [],
-      "last_move_time": 1766514188.6791992
+      "last_move_time": 1766515149.3179507
     },
     {
       "q": 4,
@@ -71,60 +91,111 @@
       "escorts": 11,
       "loot_value": 293,
       "movement_path": [],
-      "last_move_time": 1766514205.365589
+      "last_move_time": 1766515144.3181753
     },
     {
-      "q": -3,
-      "r": 5,
+      "q": 0,
+      "r": 3,
       "type": "salt",
       "escorts": 3,
       "loot_value": 131,
       "movement_path": [
         [
-          -6,
+          -2,
           5
         ],
         [
+          -1,
+          4
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          -1,
+          2
+        ],
+        [
+          -4,
+          2
+        ],
+        [
+          -6,
+          4
+        ],
+        [
+          -6,
+          3
+        ]
+      ],
+      "last_move_time": 1766515149.3179507
+    },
+    {
+      "q": -5,
+      "r": 8,
+      "type": "salt",
+      "escorts": 5,
+      "loot_value": 125,
+      "movement_path": [
+        [
+          -5,
+          11
+        ],
+        [
+          -5,
+          10
+        ],
+        [
+          -6,
+          11
+        ],
+        [
+          -8,
+          13
+        ]
+      ],
+      "last_move_time": 1766515149.3179507
+    },
+    {
+      "q": 0,
+      "r": 0,
+      "type": "gold",
+      "escorts": 13,
+      "loot_value": 239,
+      "movement_path": [
+        [
+          -1,
+          1
+        ],
+        [
+          -2,
+          2
+        ],
+        [
           -3,
-          5
+          3
         ],
         [
           -3,
           4
         ]
       ],
-      "last_move_time": 1766514188.6791992
-    },
-    {
-      "q": -4,
-      "r": 6,
-      "type": "salt",
-      "escorts": 5,
-      "loot_value": 125,
-      "movement_path": [
-        [
-          -4,
-          7
-        ],
-        [
-          -6,
-          9
-        ],
-        [
-          -5,
-          8
-        ],
-        [
-          -6,
-          9
-        ]
-      ],
-      "last_move_time": 1766514188.6791992
+      "last_move_time": 1766515153.3258476
     }
   ],
-  "explored_hexes": [],
-  "last_water_update": 1766514213.5173945,
-  "last_sandstorm_check": 1766514188.6530647,
+  "explored_hexes": [
+    [
+      2,
+      0
+    ]
+  ],
+  "last_water_update": 1766515175.4420445,
+  "last_sandstorm_check": 1766515104.259003,
   "sandstorm_active": false,
   "sandstorm_duration": 0
 }

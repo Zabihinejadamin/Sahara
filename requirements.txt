@@ -8,5 +8,8 @@ kivy-garden==0.1.5
 # For haptic feedback and device features
 plyer==2.1.0
 
+# Firebase integration (optional - app works offline without it)
+# pyrebase4==4.7.1
+
 # For JSON save/load functionality (built-in to Python)
 # No additional dependencies needed for basic JSON operations

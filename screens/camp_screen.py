@@ -122,12 +122,16 @@ class CampScreen(Screen):
         resource_bar = self.create_resource_bar()
         main_layout.add_widget(resource_bar)
 
+        # Events and navigation bar
+        nav_bar = self.create_navigation_bar()
+        main_layout.add_widget(nav_bar)
+
         # Camp grid (takes most of the space)
-        self.camp_grid = CampGridWidget(self, size_hint_y=0.6)
+        self.camp_grid = CampGridWidget(self, size_hint_y=0.5)
         main_layout.add_widget(self.camp_grid)
 
         # Bottom action buttons
-        action_layout = BoxLayout(orientation='horizontal', spacing=dp(10), size_hint_y=0.2)
+        action_layout = BoxLayout(orientation='horizontal', spacing=dp(10), size_hint_y=0.15)
 
         # Slave management
         slave_layout = BoxLayout(orientation='vertical', size_hint_x=0.4)
@@ -168,7 +172,8 @@ class CampScreen(Screen):
             ('salt', 'Salt'),
             ('gold', 'Gold'),
             ('spices', 'Spices'),
-            ('slaves', 'Slaves')
+            ('slaves', 'Slaves'),
+            ('gems', 'Gems')
         ]
 
         for resource_key, display_name in resources:
@@ -181,6 +186,32 @@ class CampScreen(Screen):
             resource_layout.add_widget(resource_box)
 
         return resource_layout
+
+    def create_navigation_bar(self):
+        """Create navigation bar with access to new features"""
+        nav_layout = BoxLayout(orientation='horizontal', spacing=dp(5), size_hint_y=0.1)
+
+        # Map button
+        map_btn = Button(text='MAP', background_color=(0.4, 0.6, 0.8, 1))
+        map_btn.bind(on_press=self.return_to_map)
+        nav_layout.add_widget(map_btn)
+
+        # Tech button
+        tech_btn = Button(text='TECH', background_color=(0.6, 0.8, 0.4, 1))
+        tech_btn.bind(on_press=self.go_to_tech)
+        nav_layout.add_widget(tech_btn)
+
+        # Clan button
+        clan_btn = Button(text='CLAN', background_color=(0.8, 0.6, 0.4, 1))
+        clan_btn.bind(on_press=self.go_to_clan)
+        nav_layout.add_widget(clan_btn)
+
+        # Shop button
+        shop_btn = Button(text='SHOP', background_color=(0.6, 0.4, 0.8, 1))
+        shop_btn.bind(on_press=self.go_to_shop)
+        nav_layout.add_widget(shop_btn)
+
+        return nav_layout
 
     def update_resource_display(self):
         """Update resource display values"""
@@ -208,6 +239,14 @@ class CampScreen(Screen):
     def go_to_tech(self, instance):
         """Go to technology screen"""
         self.manager.current = 'tech'
+
+    def go_to_clan(self, instance):
+        """Go to clan screen"""
+        self.manager.current = 'clan'
+
+    def go_to_shop(self, instance):
+        """Go to shop screen"""
+        self.manager.current = 'shop'
 
     def get_app(self):
         """Get the running Kivy app"""
