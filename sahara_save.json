@@ -1,6 +1,6 @@
 {
   "resources": {
-    "water": 100,
+    "water": 0,
     "salt": 50,
     "gold": 25,
     "spices": 0
@@ -11,27 +11,120 @@
     "gold": 0.1,
     "spices": 0.05
   },
-  "raiders_available": 10,
+  "resource_timers": {
+    "water": 8.283192300237715,
+    "salt": 54.14159615011886,
+    "gold": 10.828319230023787,
+    "spices": 5.414159615011894,
+    "slaves": 0.0
+  },
+  "raiders_available": 1,
+  "max_raiders": 50,
+  "heroes": [
+    {
+      "name": "The Veil",
+      "level": 1,
+      "available": true
+    },
+    {
+      "name": "Iron Camel",
+      "level": 1,
+      "available": true
+    },
+    {
+      "name": "Sand Viper",
+      "level": 1,
+      "available": true
+    },
+    {
+      "name": "Oasis Scout",
+      "level": 1,
+      "available": true
+    },
+    {
+      "name": "Slave Driver",
+      "level": 1,
+      "available": true
+    }
+  ],
+  "camp_buildings": {},
+  "tech_unlocked": [],
   "camp_location": {
     "q": 0,
     "r": 0
   },
-  "tech_unlocked": [],
+  "map_features": {},
   "visible_caravans": [
     {
       "q": 0,
       "r": 0,
       "type": "salt",
       "escorts": 5,
-      "loot_value": 149
+      "loot_value": 149,
+      "movement_path": [],
+      "last_move_time": 1766514188.6791992
     },
     {
       "q": 4,
       "r": -1,
       "type": "gold",
       "escorts": 11,
-      "loot_value": 293
+      "loot_value": 293,
+      "movement_path": [],
+      "last_move_time": 1766514205.365589
+    },
+    {
+      "q": -3,
+      "r": 5,
+      "type": "salt",
+      "escorts": 3,
+      "loot_value": 131,
+      "movement_path": [
+        [
+          -6,
+          5
+        ],
+        [
+          -3,
+          5
+        ],
+        [
+          -3,
+          4
+        ]
+      ],
+      "last_move_time": 1766514188.6791992
+    },
+    {
+      "q": -4,
+      "r": 6,
+      "type": "salt",
+      "escorts": 5,
+      "loot_value": 125,
+      "movement_path": [
+        [
+          -4,
+          7
+        ],
+        [
+          -6,
+          9
+        ],
+        [
+          -5,
+          8
+        ],
+        [
+          -6,
+          9
+        ]
+      ],
+      "last_move_time": 1766514188.6791992
     }
   ],
-  "explored_hexes": []
+  "explored_hexes": [],
+  "last_water_update": 1766514213.5173945,
+  "last_sandstorm_check": 1766514188.6530647,
+  "sandstorm_active": false,
+  "sandstorm_duration": 0
 }

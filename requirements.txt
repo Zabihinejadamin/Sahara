@@ -5,5 +5,8 @@ kivy==2.3.0
 # Additional Kivy dependencies (usually included)
 kivy-garden==0.1.5
 
+# For haptic feedback and device features
+plyer==2.1.0
+
 # For JSON save/load functionality (built-in to Python)
 # No additional dependencies needed for basic JSON operations

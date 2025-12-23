@@ -3,7 +3,7 @@ Utilities module - Hex math, procedural generation, pathfinding
 """
 import math
 import random
-from typing import Tuple, List, Set
+from typing import Tuple, List, Set, Dict
 from collections import deque
 
 
@@ -107,30 +107,74 @@ class ProceduralGenerator:
     """Simple procedural generation utilities"""
 
     @staticmethod
-    def generate_desert_features(radius: int = 10) -> List[Tuple[int, int, str]]:
+    def generate_desert_features(radius: int = 15) -> Dict[Tuple[int, int], str]:
         """
         Generate desert features like oases, ruins, etc.
 
         Returns:
-            List of (q, r, feature_type) tuples
+            Dict of (q, r) -> feature_type
         """
-        features = []
+        features = {}
 
         # Generate some oases
-        num_oases = random.randint(2, 5)
+        num_oases = random.randint(3, 6)
         for _ in range(num_oases):
-            q = random.randint(-radius, radius)
-            r = random.randint(-radius, radius)
-            features.append((q, r, 'oasis'))
+            while True:
+                q = random.randint(-radius, radius)
+                r = random.randint(-radius, radius)
+                if (q, r) not in features and (q, r) != (0, 0):  # Don't place on camp
+                    features[(q, r)] = 'oasis'
+                    break
+
+        # Generate some dunes
+        num_dunes = random.randint(4, 8)
+        for _ in range(num_dunes):
+            while True:
+                q = random.randint(-radius, radius)
+                r = random.randint(-radius, radius)
+                if (q, r) not in features and (q, r) != (0, 0):
+                    features[(q, r)] = 'dune'
+                    break
 
         # Generate some ruins
-        num_ruins = random.randint(1, 3)
+        num_ruins = random.randint(2, 4)
         for _ in range(num_ruins):
-            q = random.randint(-radius, radius)
-            r = random.randint(-radius, radius)
-            features.append((q, r, 'ruins'))
+            while True:
+                q = random.randint(-radius, radius)
+                r = random.randint(-radius, radius)
+                if (q, r) not in features and (q, r) != (0, 0):
+                    features[(q, r)] = 'ruins'
+                    break
 
         return features
+
+    @staticmethod
+    def generate_starting_caravans(radius: int = 15) -> List[Tuple[int, int, str]]:
+        """
+        Generate starting caravans for the game world
+
+        Returns:
+            List of (q, r, caravan_type) tuples
+        """
+        caravans = []
+
+        # Generate 4-6 caravans
+        num_caravans = random.randint(4, 6)
+
+        for _ in range(num_caravans):
+            while True:
+                q = random.randint(-radius, radius)
+                r = random.randint(-radius, radius)
+                # Don't place too close to camp
+                distance_from_camp = hex_distance(q, r, 0, 0)
+                if distance_from_camp >= 3:  # At least 3 hexes from camp
+                    # Check if position is already taken
+                    position_taken = any(c.q == q and c.r == r for c in caravans)
+                    if not position_taken:
+                        caravans.append((q, r, None))  # None = random type
+                        break
+
+        return caravans
 
     @staticmethod
     def generate_caravan_route(start_q: int, start_r: int, length: int = 5) -> List[Tuple[int, int]]:

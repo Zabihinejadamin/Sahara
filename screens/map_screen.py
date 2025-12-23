@@ -13,6 +13,7 @@ from kivy.metrics import dp
 from kivy.app import App
 import math
 import random
+import time
 
 from game_data import GameData
 from caravan import Caravan
@@ -25,12 +26,29 @@ class HexMapWidget(Widget):
     def __init__(self, game_data: GameData, **kwargs):
         super().__init__(**kwargs)
         self.game_data = game_data
-        self.hex_grid = HexGrid(radius=dp(30))  # Hex size for mobile
+        self.hex_grid = HexGrid(radius=dp(20))  # Smaller hexes for 20x20 grid
         self.selected_hex = None
         self.scouting_spies = []  # List of active scouting missions
+        self.caravan_update_event = None
+
+        # Start caravan movement updates
+        self._start_caravan_updates()
 
         # Bind to touch events
         self.bind(size=self._update_canvas, pos=self._update_canvas)
+
+    def _start_caravan_updates(self):
+        """Start periodic caravan movement updates"""
+        if self.caravan_update_event:
+            self.caravan_update_event.cancel()
+        self.caravan_update_event = Clock.schedule_interval(self._update_caravans, 1.0)  # Update every second
+
+    def _update_caravans(self, dt):
+        """Update caravan positions"""
+        current_time = time.time()
+        for caravan in self.game_data.visible_caravans:
+            caravan.update_movement(current_time)
+        self._update_canvas()  # Redraw map
 
     def _update_canvas(self, *args):
         """Redraw the entire map"""
@@ -44,6 +62,9 @@ class HexMapWidget(Widget):
             # Draw hex grid
             self._draw_hex_grid()
 
+            # Draw map features (oases, dunes, ruins)
+            self._draw_map_features()
+
             # Draw player camp
             self._draw_player_camp()
 
@@ -53,16 +74,16 @@ class HexMapWidget(Widget):
             # Draw scouting spies
             self._draw_scouting_spies()
 
-            # Draw sandstorm overlay (random)
-            if random.random() < 0.1:  # 10% chance
+            # Draw sandstorm overlay if active
+            if self.game_data.sandstorm_active:
                 self._draw_sandstorm_overlay()
 
     def _draw_hex_grid(self):
         """Draw the hexagonal grid"""
-        Color(0.8, 0.7, 0.5, 0.3)  # Light desert grid lines
+        Color(0.8, 0.7, 0.5, 0.2)  # Light desert grid lines
 
         center_x, center_y = self.center
-        grid_radius = 8  # 17x17 hex grid
+        grid_radius = 15  # 31x31 hex grid for 20x20 playable area
 
         for q in range(-grid_radius, grid_radius + 1):
             r1 = max(-grid_radius, -q - grid_radius)
@@ -73,6 +94,31 @@ class HexMapWidget(Widget):
 
                 # Draw hex outline
                 self._draw_hex_outline(hex_center)
+
+    def _draw_map_features(self):
+        """Draw map features like oases, dunes, ruins"""
+        center_x, center_y = self.center
+
+        for (q, r), feature_type in self.game_data.map_features.items():
+            hex_pos = hex_to_pixel(q, r, self.hex_grid.radius)
+            pixel_pos = (center_x + hex_pos[0], center_y + hex_pos[1])
+
+            if feature_type == 'oasis':
+                # Blue oasis
+                Color(0.3, 0.6, 0.9, 0.8)
+                Ellipse(pos=(pixel_pos[0] - dp(12), pixel_pos[1] - dp(12)),
+                       size=(dp(24), dp(24)))
+            elif feature_type == 'dune':
+                # Yellow dune
+                Color(0.9, 0.8, 0.4, 0.6)
+                Ellipse(pos=(pixel_pos[0] - dp(10), pixel_pos[1] - dp(10)),
+                       size=(dp(20), dp(20)))
+            elif feature_type == 'ruins':
+                # Gray ruins
+                Color(0.5, 0.5, 0.5, 0.7)
+                # Draw as a small square
+                Rectangle(pos=(pixel_pos[0] - dp(8), pixel_pos[1] - dp(8)),
+                         size=(dp(16), dp(16)))
 
     def _draw_hex_outline(self, center):
         """Draw a single hex outline"""
@@ -112,14 +158,29 @@ class HexMapWidget(Widget):
             hex_pos = hex_to_pixel(caravan.q, caravan.r, self.hex_grid.radius)
             pixel_pos = (center_x + hex_pos[0], center_y + hex_pos[1])
 
-            # Caravan icon (circle with type color)
-            if caravan.caravan_type == 'gold':
-                Color(1, 0.8, 0, 1)  # Gold
-            else:  # salt
+            # Caravan icon based on type
+            if caravan.caravan_type == 'salt':
                 Color(0.8, 0.8, 0.8, 1)  # Silver
+                size = dp(12)
+            elif caravan.caravan_type == 'gold':
+                Color(1, 0.8, 0, 1)  # Gold
+                size = dp(14)
+            elif caravan.caravan_type == 'spices':
+                Color(0.6, 0.2, 0.8, 1)  # Purple
+                size = dp(16)
+            elif caravan.caravan_type == 'imperial':
+                Color(0.9, 0.1, 0.1, 1)  # Red
+                size = dp(18)
 
-            Ellipse(pos=(pixel_pos[0] - dp(8), pixel_pos[1] - dp(8)),
-                   size=(dp(16), dp(16)))
+            # Draw caravan with size based on type
+            Ellipse(pos=(pixel_pos[0] - size/2, pixel_pos[1] - size/2),
+                   size=(size, size))
+
+            # If scouted, add a small indicator
+            if caravan.is_scouted:
+                Color(0, 1, 0, 0.8)  # Green indicator
+                Ellipse(pos=(pixel_pos[0] - dp(3), pixel_pos[1] + size/2 - dp(3)),
+                       size=(dp(6), dp(6)))
 
     def _draw_scouting_spies(self):
         """Draw active scouting spies"""
@@ -136,8 +197,16 @@ class HexMapWidget(Widget):
 
     def _draw_sandstorm_overlay(self):
         """Draw semi-transparent sandstorm effect"""
-        Color(0.8, 0.7, 0.5, 0.3)  # Semi-transparent sand color
+        # More intense overlay when sandstorm is active
+        Color(0.8, 0.7, 0.5, 0.5)  # Semi-transparent sand color
         Rectangle(pos=self.pos, size=self.size)
+
+        # Add some swirling particles effect (simplified)
+        Color(0.9, 0.8, 0.6, 0.3)
+        for _ in range(20):
+            x = random.uniform(self.pos[0], self.pos[0] + self.size[0])
+            y = random.uniform(self.pos[1], self.pos[1] + self.size[1])
+            Ellipse(pos=(x - dp(2), y - dp(2)), size=(dp(4), dp(4)))
 
     def on_touch_down(self, touch):
         """Handle touch/click on map"""
@@ -192,11 +261,26 @@ class HexMapWidget(Widget):
         if spy in self.scouting_spies:
             self.scouting_spies.remove(spy)
 
-        # Chance to find a caravan
-        if random.random() < 0.3:  # 30% chance
-            caravan_type = 'gold' if random.random() < 0.5 else 'salt'
-            caravan = Caravan(spy['q'], spy['r'], caravan_type)
-            self.game_data.visible_caravans.append(caravan)
+        # Check if there's already a caravan at this location
+        existing_caravan = None
+        for caravan in self.game_data.visible_caravans:
+            if caravan.q == spy['q'] and caravan.r == spy['r']:
+                existing_caravan = caravan
+                break
+
+        if existing_caravan:
+            # Scout existing caravan
+            existing_caravan.scout_caravan()
+            print(f"Scouted caravan: {existing_caravan.get_description()}")
+        else:
+            # Chance to find a new caravan
+            if random.random() < 0.4:  # 40% chance to find new caravan
+                caravan = Caravan(spy['q'], spy['r'])
+                self.game_data.visible_caravans.append(caravan)
+                print(f"Found new caravan: {caravan.get_description()}")
+
+        # Mark hex as explored
+        self.game_data.explored_hexes.add((spy['q'], spy['r']))
 
         self._update_canvas()
 

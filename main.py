@@ -21,6 +21,7 @@ Config.set('graphics', 'resizable', True)
 from screens.map_screen import MapScreen
 from screens.camp_screen import CampScreen
 from screens.raid_screen import RaidScreen
+from screens.tech_screen import TechScreen
 
 
 class SaharaRaidersApp(App):
@@ -47,6 +48,7 @@ class SaharaRaidersApp(App):
         sm.add_widget(MapScreen(name='map'))
         sm.add_widget(CampScreen(name='camp'))
         sm.add_widget(RaidScreen(name='raid'))
+        sm.add_widget(TechScreen(name='tech'))
 
         # Start on map screen
         sm.current = 'map'
