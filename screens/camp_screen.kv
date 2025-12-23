@@ -1,0 +1,126 @@
+# Camp Screen KV Layout
+<CampScreen>:
+    name: 'camp'
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: dp(20)
+        spacing: dp(15)
+
+        # Title
+        Label:
+            text: 'DESERT CAMP'
+            font_size: dp(24)
+            size_hint_y: 0.08
+            bold: True
+
+        # Resources Section
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: 0.3
+            spacing: dp(10)
+
+            Label:
+                text: 'RESOURCES'
+                font_size: dp(18)
+                bold: True
+
+            # Resource displays in a grid
+            GridLayout:
+                cols: 2
+                spacing: dp(10)
+                size_hint_y: 0.8
+
+                Label:
+                    id: water_display
+                    text: 'Water: 100'
+                    font_size: dp(16)
+                    halign: 'center'
+
+                Label:
+                    id: salt_display
+                    text: 'Salt: 50'
+                    font_size: dp(16)
+                    halign: 'center'
+
+                Label:
+                    id: gold_display
+                    text: 'Gold: 25'
+                    font_size: dp(16)
+                    halign: 'center'
+
+                Label:
+                    id: spices_display
+                    text: 'Spices: 0'
+                    font_size: dp(16)
+                    halign: 'center'
+
+            # Water timer and progress
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: dp(5)
+
+                Label:
+                    id: water_timer
+                    text: 'Next water: 10s'
+                    font_size: dp(14)
+                    halign: 'center'
+
+                ProgressBar:
+                    id: water_bar
+                    max: 100
+                    value: 50
+                    size_hint_y: 0.3
+
+        # Military Section
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: 0.15
+            spacing: dp(5)
+
+            Label:
+                id: raiders_display
+                text: 'Available Raiders: 10'
+                font_size: dp(16)
+                bold: True
+
+            Button:
+                text: 'Recruit Raider (25 Gold)'
+                font_size: dp(14)
+                size_hint_y: 0.6
+                on_press: root.recruit_raiders()
+
+        # Upgrades Section
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: 0.25
+            spacing: dp(10)
+
+            Label:
+                text: 'UPGRADES'
+                font_size: dp(18)
+                bold: True
+
+            GridLayout:
+                cols: 1
+                spacing: dp(5)
+
+                Button:
+                    text: 'Upgrade Well (+Water Generation) - 50 Gold'
+                    font_size: dp(14)
+                    on_press: root.upgrade_well()
+
+                Button:
+                    text: 'Upgrade Salt Mine (+Salt Generation) - 75 Gold'
+                    font_size: dp(14)
+                    on_press: root.upgrade_salt_mine()
+
+        # Navigation
+        BoxLayout:
+            size_hint_y: 0.12
+            spacing: dp(20)
+
+            Button:
+                text: 'RETURN TO MAP'
+                font_size: dp(18)
+                on_press: root.return_to_map()

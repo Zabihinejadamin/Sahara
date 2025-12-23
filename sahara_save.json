@@ -1,0 +1,37 @@
+{
+  "resources": {
+    "water": 100,
+    "salt": 50,
+    "gold": 25,
+    "spices": 0
+  },
+  "resource_rates": {
+    "water": 1.0,
+    "salt": 0.5,
+    "gold": 0.1,
+    "spices": 0.05
+  },
+  "raiders_available": 10,
+  "camp_location": {
+    "q": 0,
+    "r": 0
+  },
+  "tech_unlocked": [],
+  "visible_caravans": [
+    {
+      "q": 0,
+      "r": 0,
+      "type": "salt",
+      "escorts": 5,
+      "loot_value": 149
+    },
+    {
+      "q": 4,
+      "r": -1,
+      "type": "gold",
+      "escorts": 11,
+      "loot_value": 293
+    }
+  ],
+  "explored_hexes": []
+}

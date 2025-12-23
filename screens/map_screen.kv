@@ -1,0 +1,43 @@
+# Map Screen KV Layout
+<MapScreen>:
+    name: 'map'
+
+    # Main layout container
+    BoxLayout:
+        orientation: 'vertical'
+
+        # Top bar with resources and buttons
+        BoxLayout:
+            size_hint_y: 0.1
+            padding: dp(10)
+            spacing: dp(10)
+
+            # Resources display
+            Label:
+                text: 'Water: 100 | Salt: 50 | Gold: 25'
+                font_size: dp(16)
+                halign: 'left'
+                valign: 'middle'
+                text_size: self.size
+
+            # Action buttons
+            BoxLayout:
+                size_hint_x: 0.4
+                spacing: dp(5)
+
+                Button:
+                    text: 'Camp'
+                    font_size: dp(14)
+                    on_press: root.manager.current = 'camp'
+
+                Button:
+                    text: 'Scout'
+                    font_size: dp(14)
+                    on_press: root.hex_map._start_scouting(1, 1) if root.hex_map else None
+
+        # Main map area (takes most of the screen)
+        BoxLayout:
+            size_hint_y: 0.9
+
+            # The hex map widget is added programmatically in Python
+            # This BoxLayout serves as a container
